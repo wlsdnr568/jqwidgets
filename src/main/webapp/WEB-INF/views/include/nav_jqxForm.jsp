@@ -2,18 +2,19 @@
 
 <script>
 	$(document).ready(function () {
-		$("#jqxNavigationBar").jqxNavigationBar({
+		$("#jqxNavigationBar_jqxForm").jqxNavigationBar({
 		   "width" : "100%",
 		   "height" : "100%",
 		   "expandMode" : "toggle"
 		});    
 		
-		$("#jqxNavigationBar").on("expandedItem", function(event) {
+		$("#jqxNavigationBar_jqxForm").on("expandedItem", function(event) {
 		   $.ajax(getContextPath() + "/reference/", {
 				type : "post",
 				dataType : "html",
 				data : {
-				    "type" : event.args.item
+				    "type" : event.args.item,
+				    "container" : "jqxForm" 
 				},
 				async : false
 			})
@@ -26,7 +27,7 @@
 			});
 		});
 		
-		$("#jqxNavigationBar a").on("click", function(event){
+		$("#jqxNavigationBar_jqxForm a").on("click", function(event){
 		   event.preventDefault();
 		   
 		   $.ajax(getContextPath() + $(this).attr("href"), {
@@ -52,7 +53,7 @@
 	   return window.location.pathname.substring(0, window.location.pathname.indexOf("/",2));
 	}
 </script>
-<div id="jqxNavigationBar">
+<div id="jqxNavigationBar_jqxForm">
 	<div>
 		jqxInput
 	</div>
@@ -94,15 +95,42 @@
 	<div>
 	</div>
 	<div>
-		jqxGrid
+		jqxButton
 	</div>
 	<div>
-		<ul>
-			<li><a href="/widgets/jqxgrid_test">test</a></li>
-		</ul>
 	</div>
 	<div>
-		jqxResponsivePanel
+		jqxRepeatButton
+	</div>
+	<div>
+	</div>
+	<div>
+		jqxToggleButton
+	</div>
+	<div>
+	</div>
+	<div>
+		jqxLinkButton
+	</div>
+	<div>
+	</div>
+	<div>
+		jqxCheckBox
+	</div>
+	<div>
+	</div>
+	<div>
+		jqxRadioButton
+	</div>
+	<div>
+	</div>
+	<div>
+		jqxSwitchButton
+	</div>
+	<div>
+	</div>
+	<div>
+		jqxDropDownList
 	</div>
 	<div>
 	</div>

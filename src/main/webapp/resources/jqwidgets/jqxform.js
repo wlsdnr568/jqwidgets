@@ -70,6 +70,7 @@
 				return
 			}
 			var c = this._getValue();
+			
 			if (this._prevValue && JSON.stringify(c) == JSON.stringify(this._prevValue)) {
 				return
 			}
@@ -152,7 +153,9 @@
 			var d = [];
 			for (var h = 0; h < this.template.length; h++) {
 				var k = this.template[h];
-				var l = "el_" + h;
+				let formId = this.host.attr("id");  // 181205_kmh      
+				var l = formId + "_el_" + h;
+				
 				if (a.isArray(k.columns)) {
 					for (var g = 0; g < k.columns.length; g++) {
 						var f = k.columns[g];
@@ -302,6 +305,9 @@
 			for (var c = 0; c < b.options.length; c++) {
 				var e = f + "_option_" + c;
 				var d = this.host.find("#" + e);
+				
+				//alert("_radioGroupGetValue : " + d.attr("id"));
+				
 				if (d.length > 0) {
 					var g = d.jqxRadioButton("val");
 					if (g == true) {
@@ -682,6 +688,14 @@
     				    		"<div></div>" +
 				    		"</div>" + 
 		    		    "</div>";
+	            } else if (g.type === "complexinput") {
+	                // 181121_kmh complexinput element 추가
+	                u = "<div style='background: transparent;" + r + D + "'>" +
+                            "<div style='width: auto; height: auto; " + x + "' id='" + s + "'>" + 
+                                "<input type='text' />" +
+                                "<div></div>" +
+                            "</div>" + 
+                        "</div>";
 	            }
 			} 
 			if (g.type == "option" && g.component != "jqxDropDownList" && !isNaN(j)) {
@@ -766,17 +780,21 @@
 				case "color":
 					this._initColorTool(g);
 					break;
+				// radio button
 				case "option":
 					if (b.component == "jqxDropDownList") {
 						this._initOptionToolDropDownList(g)
 					} else {
-						this._initOptionTool(g)
+						this._initOptionTool(g);
 					}
 					break;
+				// TODO : option -> jqxDropDownList 처리  dropDownList로 통합?
 				case "dropdownlist":
+				case "dropDownList":
 					this._initOptionToolDropDownList(g);
 					break;
 				case "number":
+				case "numberinput":
 					this._initNumberTool(g);
 					break;
 				case "boolean":
@@ -800,6 +818,23 @@
 				case "button":
 					this._initButtonTool(g);
 					break;
+				case "repeatButton":
+				    this._initRepeatButtonTool(g);
+				    break;
+				case "toggleButton":
+				    this._initToggleButtonTool(g);
+				    break;
+				case "linkButton":
+				    this._initLinkButtonTool(g);
+				    break;
+				case "switchButton":
+					this._initSwitchButtonTool(g);
+					break;
+				case "dropDownButton":
+					this._initDropDownButtonTool(g);
+					break;
+				    
+				    
 				case "custom":
 					this._initCustomTool(g);
 					break;
@@ -808,6 +843,9 @@
 				    break;
 				case "formattedinput":
 				    this._initFormattedInputTool(g);
+				    break;
+				case "complexinput":
+				    this._initComplexInputTool(g);
 				    break;
 				}
 				if (b.visible === false) {
@@ -838,35 +876,79 @@
 				break
 			}
 		},
-		_initOptionTool: function (h) {
-			var b = this;
-			var j = "el_" + h;
-			var c = b._getTool(h);
-			for (var d = 0; d < c.options.length; d++) {
-				var g = j + "_option_" + d;
-				var e = b.host.find("#" + g);
-				if (e.length > 0) {
-					e.jqxRadioButton({
-						width: 25,
-						theme: b.theme,
-						groupName: "group_" + h
-					}).on("change", function (i) {
-						b._onChangeHandler(i)
-					})
-				}
-				var f = b.host.find("#label_" + g);
-				f.data("el", e);
-				f.on("mousedown", function (k) {
-					var i = a(this).data("el");
-					i.jqxRadioButton("toggle")
-				})
-			}
+		// TODO : 여기부터
+		_initOptionTool: function (seq) {
+			let _this = this;
+            let formId = this.host.attr("id");
+            let id = formId + "_el_" + seq;
+            let obj = _this._getTool(seq);
+            
+            
+            for(let i = 0; i < obj.options.length; i++) {
+                let optionId = id + "_option_" + i;
+                let elem = _this.host.find("#" + optionId);
+                
+                if(elem.length > 0) {
+                    let animationShowDelay = typeof obj.animationShowDelay === "undefined" ? 300 : obj.animationShowDelay;
+                    let animationHideDelay = typeof obj.animationHideDelay === "undefined" ? 300 : obj.animationHideDelay;
+                    let boxSize = typeof obj.boxSize === "undefined" ? "16px" : obj.boxSize;
+                    let checked = typeof obj.checked === "undefined" ? false : obj.checked;
+                    let disabled = typeof obj.disabled === "undefined" ? false : obj.disabled;
+                    let enableContainerClick = typeof obj.enableContainerClick === "undefined" ? true : obj.enableContainerClick;
+                    let groupName = typeof obj.groupName === "undefined" ? "" : obj.groupName;
+                    let hasThreeStates = typeof obj.hasThreeStates === "undefined" ? false : obj.hasThreeStates;
+                    let height = typeof obj.height === "undefined" ? null : obj.height;
+                    let rtl = typeof obj.rtl === "undefined" ? false : obj.rtl;
+                    let theme = typeof obj.theme === "undefined" ? "" : obj.theme;
+                    let width = typeof obj.width === "undefined" ? 25 : obj.width;
+                    
+                    elem.jqxRadioButton({
+                        "animationShowDelay" : animationShowDelay,
+                        "animationHideDelay" : animationHideDelay,
+                        "boxSize" : boxSize,
+                        "checked" : checked,
+                        "disabled" : disabled,
+                        "enableContainerClick" : enableContainerClick,
+                        "groupName" : groupName,
+                        //"groupName" : "group_" + seq
+                        "hasThreeStates" : hasThreeStates,
+                        "height" : height,
+                        "rtl" : rtl,
+                        "theme" : theme,
+                        "width" : width,
+                        
+                        "events" : ["checked", "unchecked", "indeterminate", "change"]
+                    });
+                    
+                    elem.on("change", function(event) {
+                        _this._onChangeHandler(event);
+                    });
+                }
+                
+                
+                
+                let labelElem = _this.host.find("#label_" + optionId);
+                labelElem.data("el", elem);
+                labelElem.on("mousedown", function(e) {
+                    let radioElem = a(this).data("el");
+                    radioElem.jqxRadioButton("toggle");
+                });
+            }
 		},
 		_initOptionToolDropDownList: function (seq) {
+			let _this = this;
+            let formId = this.host.attr("id");
+            let id = formId + "_el_" + seq;
+            let obj = _this._getTool(seq);
+            let elem = this.host.find("#" + id);
+            
+            /*
 			var _this = this;
 			var id = "el_" + seq;
 			var obj =  _this._getTool(seq);
 			var elem = this.host.find("#" + id);
+			*/
+			
 			var divHeight = '<div style="height: 20px;"></div>';
 			var source = [];
 			
@@ -879,84 +961,165 @@
 			if (obj.init) {
 			    obj.init(elem);
 			} else {
-				var width = isNaN(parseFloat(obj.width)) ? "auto" : obj.width;
+				let autoOpen = typeof obj.autoOpen === "undefined" ? false : obj.autoOpen;
+				let autoItemsHeight = typeof obj.autoItemsHeight === "undefined" ? false : obj.autoItemsHeight;
+				let autoDropDownHeight = typeof obj.autoDropDownHeight === "undefined" ? false : obj.autoDropDownHeight;
+				let animationType = typeof obj.animationType === "undefined" ? "default" : obj.animationType;
+				let checkboxes = typeof obj.checkboxes === "undefined" ? false : obj.checkboxes;
+				let closeDelay = typeof obj.closeDelay === "undefined" ? 300 : obj.closeDelay;
+				let disabled = typeof obj.disabled === "undefined" ? false : obj.disabled;
+				let displayMember = typeof obj.displayMember === "undefined" ? "" : obj.displayMember;
+				let dropDownHorizontalAlignment = typeof obj.dropDownHorizontalAlignment === "undefined" ? "left" : obj.dropDownHorizontalAlignment;
+				let dropDownVerticalAlignment = typeof obj.dropDownVerticalAlignment === "undefined" ? "bottom" : obj.dropDownVerticalAlignment;
+				let dropDownHeight = typeof obj.dropDownHeight === "undefined" ? 200 : obj.dropDownHeight; 
+				let dropDownWidth = typeof obj.dropDownWidth === "undefined" ? "auto" : obj.dropDownWidth;
+				let enableSelection = typeof obj.enableSelection === "undefined" ? true : obj.enableSelection;
+				let enableBrowserBoundsDetection = typeof obj.enableBrowserBoundsDetection === "undefined" ? false : obj.enableBrowserBoundsDetection;
+				let enableHover = typeof obj.enableHover === "undefined" ? true : obj.enableHover;
+				let filterable = typeof obj.filterable === "undefined" ? false : obj.filterable;
+				let filterHeight = typeof obj.filterHeight === "undefined" ? 27 : obj.filterHeight;
+				let filterDelay = typeof obj.filterDelay === "undefined" ? 100 : obj.filterDelay;
+				let filterPlaceHolder = typeof obj.filterPlaceHolder === "undefined" ? "Looking for" : obj.filterPlaceHolder;
+				let height = typeof obj.height === "undefined" ? null : obj.height;
+				let incrementalSearch = typeof obj.incrementalSearch === "undefined" ? true : obj.incrementalSearch;
+				let incrementalSearchDelay = typeof obj.incrementalSearchDelay === "undefined" ? 700 : obj.incrementalSearchDelay;
+				let itemHeight = typeof obj.itemHeight === "undefined" ? -1 : obj.itemHeight;
+				let openDelay = typeof obj.openDelay === "undefined" ? 250 : obj.openDelay;
+				let placeHolder = typeof obj.placeHolder === "undefined" ? "" : obj.placeHolder;
+				let popupZIndex = typeof obj.popupZIndex === "undefined" ? 2000 : obj.popupZIndex;
+				let rtl = typeof obj.rtl === "undefined" ? false : obj.rtl;
+				let renderer = typeof obj.renderer === "undefined" ? null : obj.renderer;
+				let selectionRenderer = typeof obj.selectionRenderer === "undefined" ? null : obj.selectionRenderer;
+				let searchMode = typeof obj.searchMode === "undefined" ? "startswithignorecase" : obj.searchMode;
+				let scrollBarSize = typeof obj.scrollBarSize === "undefined" ? 15 : obj.scrollBarSize;
+				let selectedIndex = typeof obj.selectedIndex === "undefined" ? -1 : obj.selectedIndex;
+				let template = typeof obj.template === "undefined" ? "default" : obj.template;
+				let theme = typeof obj.theme === "undefined" ? "" : obj.theme;
+				let valueMember = typeof obj.valueMember === "undefined" ? "" : obj.valueMember;
+				var width = typeof obj.width === "undefined" ? "auto" : obj.width;
+				
 				if (obj.width && obj.width.toString().indexOf("%") != -1 && obj.columnwidth === undefined) {
 					width = "100%";
 				}
 				
-				var height = isNaN(parseFloat(obj.height)) ? "30px" : obj.height;
 				
 				elem.jqxDropDownList({
-					"theme" :  _this.theme,
-					"width" : width || "auto",
-					"autoDropDownHeight" : true,
+					"autoOpen" : autoOpen,
+					"autoItemsHeight" : autoItemsHeight,
+					"autoDropDownHeight" : autoDropDownHeight,
+					"animationType" : animationType,
+					"checkboxes" : checkboxes,
+					"closeDelay" : closeDelay,
+					"disabled" : disabled,
+					"displayMember" : displayMember,
+					"dropDownHorizontalAlignment" : dropDownHorizontalAlignment,
+					"dropDownVerticalAlignment" : dropDownVerticalAlignment,
+					"dropDownHeight" : dropDownHeight,
+					"dropDownWidth" : dropDownWidth,
+					"enableSelection" : enableSelection,
+					"enableBrowserBoundsDetection" : enableBrowserBoundsDetection,
+					"enableHover" : enableHover,
+					"filterable" : filterable,
+					"filterHeight" : filterHeight,
+					"filterDelay" : filterDelay,
+					"filterPlaceHolder" : filterPlaceHolder,
 					"height" : height,
-					"enableBrowserBoundsDetection" : true,
+					"incrementalSearch" : incrementalSearch,
+					"incrementalSearchDelay" : incrementalSearchDelay,
+					"itemHeight" : itemHeight,
+					"openDelay" : openDelay,
+					"placeHolder" : placeHolder,
+					"popupZIndex" : popupZIndex,
+					"rtl" : rtl,
+					"renderer" : renderer,
+					"selectionRenderer" : selectionRenderer,
+					"searchMode" : searchMode,
+					"scrollBarSize" : scrollBarSize,
+					"selectedIndex" : selectedIndex,
 					"source" : source,
-					"selectedIndex" : 0
+					"template" : template,
+					"theme" : theme,
+					"valueMember" : valueMember,
+					"width" : width,
+					
+					"events" : ["open", "close", "select", "unselect", "change", "checkChange", "bindingComplete", "itemAdd", "itemRemove", "itemUpdate"]
 				});
 			}
+			
 			elem.on("change", function (event) {
 			    _this._onChangeHandler(event);
 			})
 		},
 		_initNumberTool: function (seq) {
 		    let _this = this;
-			let id = "el_" + seq;
+		    let formId = this.host.attr("id");
+            let id = formId + "_el_" + seq;
 			let obj = _this._getTool(seq);
 			let elem = this.host.find("#" + id);
 			
 			if (obj.init) {
 			    obj.init(elem);
 			} else {
-			    let width = isNaN(parseFloat(obj.width)) ? "auto" : obj.width;
-				let height = isNaN(parseFloat(obj.height)) ? "30px" : obj.height;
+			    let width = isNaN(parseFloat(obj.width)) ? 200 : obj.width;
+				let height = isNaN(parseFloat(obj.height)) ? 25 : obj.height;
+				let allowNull = typeof obj.allowNull === "undefined" ? true : obj.allowNull;
+				let decimal = typeof obj.decimal === "undefined" ? 0 : obj.decimal;
+				let disabled = typeof obj.disabled === "undefined" ? false : obj.disabled;
+				let decimalDigits = typeof obj.decimalDigits === "undefined" ? 2 : obj.decimalDigits;
+				let decimalSeparator = typeof obj.decimalSeparator === "undefined" ? "." : obj.decimalSeparator;
+				let digits = typeof obj.digits === "undefined" ? 8 : obj.digits;
+				let groupSeparator = typeof obj.groupSeparator === "undefined" ? "," : obj.groupSeparator;
+				let groupSize = typeof obj.groupSize === "undefined" ? 3 : obj.groupSize;
+				let inputMode = typeof obj.inputMode === "undefined" ? "advanced" : obj.inputMode;
+				let min = typeof obj.min === "undefined" ? -99999999 : obj.min;
+				let max = typeof obj.max == "undefined" ? 99999999 : obj.max;
+				let negativeSymbol = typeof obj.negativeSymbol === "undefined" ? "-" : obj.negativeSymbol;
+				let placeHolder = typeof obj.placeHolder === "undefined" ? "" : obj.placeHolder;
+				let promptChar = typeof obj.promptChar === "undefined" ? "_" : obj.promptChar;
+				let rtl = typeof obj.rtl === "undefined" ? false : obj.rtl;
+				let spinButtons = typeof obj.spinButtons === "undefined" ? false : obj.spinButtons;
+				let readOnly = typeof obj.readOnly === "undefined" ? false : obj.readOnly;
+				let spinMode = typeof obj.spinMode === "undefined" ? "advanced" : obj.spinMode;
+				let spinButtonsWidth = typeof obj.spinButtonsWidth === "undefined" ? 18 : obj.spinButtonsWidth;
+				let spinButtonsStep = typeof obj.spinButtonsStep === "undefined" ? 1 : obj.spinButtonsStep;
+				let symbol = typeof obj.symbol === "undefined" ? "" : obj.symbol;
+				let symbolPosition = typeof obj.symbolPosition === "undefined" ? "left" : obj.symbolPosition;
+				let textAlign = typeof obj.textAlign === "undefined" ? "right" : obj.textAlign;
+				let template = typeof obj.template === "undefined" ? "default" : obj.template;
+				let theme = typeof obj.theme === "undefined" ? "" : obj.theme;
 				
 				elem.jqxNumberInput({
-					"theme" : _this.theme,
+				    "allowNull" : allowNull,
+				    "decimal" : decimal,
+				    "disabled" : disabled,
+				    "decimalDigits" : decimalDigits,
+				    "decimalSeparator" : decimalSeparator,
+				    "digits" : digits,
+				    "groupSeparator" : groupSeparator,
+				    "groupSize" : groupSize,
+				    "height" : height,
+				    "inputMode" : inputMode,
+				    "min" : min,
+				    "max" : max,
+				    "negativeSymbol" : negativeSymbol,
+				    "placeHolder" : placeHolder,
+				    "promptChar" : promptChar,
+				    "rtl" : rtl,
+				    "readOnly" : readOnly,
+				    "spinMode" : spinMode,
+				    "spinButtons" : spinButtons,
+				    "spinButtonsWidth": spinButtonsWidth,
+				    "spinButtonsStep" : spinButtonsStep,
+				    "symbol" : symbol,
+				    "symbolPosition" : symbolPosition,
+				    "textAlign" : textAlign,
+				    "template" : template,
+				    "theme" : theme,
 					"width" : width,
-					"height" : height,
-					"inputMode" : "simple"
 				})
 			}
 			elem.on("change", function (i) {
 			    _this._onChangeHandler(i)
-			})
-		},
-		_initBooleanTool: function (seq) {
-			let _this = this;
-			let id = "el_" + seq;
-			let obj = _this._getTool(seq);
-			let elem = this.host.find("#" + id);
-			
-			if (obj.init) {
-			    obj.init(elem);
-			} else {
-				let width = isNaN(parseFloat(obj.width)) ? "auto" : obj.width;
-				let height = isNaN(parseFloat(obj.height)) ? "30px" : obj.height;
-				let isThreeState = obj.isThreeState == true;
-				
-				if (obj.component === undefined || obj.component == "jqxCheckBox") {
-				    elem.jqxCheckBox({
-						"theme" : _this.theme,
-						"width" : width,
-						"height" : height,
-						"hasThreeStates" : isThreeState
-					});
-				} else {
-					return;
-				}
-			}
-			
-			elem.on("change", function (event) {
-			    _this._onChangeHandler(event);
-			});
-			
-			let labelElem = _this.host.find("#label_" + id);
-			
-			labelElem.on("mousedown", function (evnet) {
-				let hasValue = _this.host.find("#" + id).val();
-				_this.host.find("#" + id).val(!hasValue);
 			})
 		},
 		_initTextTool: function (seq) {
@@ -1005,7 +1168,6 @@
 					"popupZIndex" : popupZIndex,
 					"renderer" : renderer,
 					"rtl" : rtl,
-					"events": ["select", "open", "close", "change"],
 				});
 			}
 			
@@ -1050,29 +1212,331 @@
 		},
 		_initButtonTool: function (seq) {
 			let _this = this;
-			let id = "el_" + seq;
-			let obj = _this._getTool(seq);
-			let elem = _this.host.find("#" + id);
+			let formId = this.host.attr("id");
+            let id = formId + "_el_" + seq;
+            let obj = _this._getTool(seq);
+            let elem = this.host.find("#" + id);
 			
 			if (obj.init) {
 			    obj.init(elem);
 			} else {
-				let width = isNaN(parseFloat(obj.width)) ? "auto" : obj.width;
-				let height = isNaN(parseFloat(obj.height)) ? "30px" : obj.height;
+			    let disabled = typeof obj.disabled === "undefined" ? false : obj.disabled;
+                let height = isNaN(parseFloat(obj.height)) ? null : obj.height;
+				let imgSrc = typeof obj.imgSrc === "undefined" ? "" : obj.imgSrc;
+				let imgWidth = typeof obj.imgWidth === "undefined" ? 16 : obj.imgWidth;
+				let imgHeight = typeof obj.imgHeight === "undefined" ? 16 : obj.imgHeight;
+				let imgPosition = typeof obj.imgPosition === "undefined" ? "center" : obj.imgPosition;
+				let roundedCorners = typeof obj.roundedCorners === "undefined" ? "all" : obj.roundedCorners;
+				let rtl = typeof obj.rtl === "undefined" ? false : obj.rtl;
+				let textPosition = typeof obj.textPosition === "undefined" ? "" : obj.textPosition;
+				let textImageRelation = typeof obj.textImageRelation === "undefined" ? "overlay" : obj.textImageRelation; 
+				let theme = typeof obj.theme === "undefined" ? "" : obj.theme;
+				let template = typeof obj.template === "undefined" ? "default" : obj.template;
+				let width = isNaN(parseFloat(obj.width)) ? null : obj.width;
+				let value = typeof obj.value === "undefined" ? null : obj.value;
+				let text = typeof obj.text === "undefined" ? "Button" : obj.text;
 				
 				elem.jqxButton({
-					"theme" : _this.theme,
+				    "disabled" : disabled,
+				    "height" : height,
+				    "imgSrc" : imgSrc,
+				    "imgWidth" : imgWidth,
+				    "imgHeight" : imgHeight,
+				    "imgPosition" : imgPosition,
+				    "roundedCorners" : roundedCorners,
+				    "rtl" : rtl,
+				    "textPosition" : textPosition,
+				    "textImageRelation" : textImageRelation,
+					"theme" : theme,
+					"template" : template,
 					"width" : width,
-					"height" : height
+					"value" : value
 				});
 				
-				elem.val(obj.text === undefined ? "Button" : obj.text);
+				elem.val(obj.text === undefined ? "Button" : value);
 			}
 			
+			/*
 			_this.host.find("#" + id).on("click", function (event) {
 			    _this._onButtonClick(elem, obj);
 			});
+			*/
 		},
+		_initRepeatButtonTool: function(seq) {
+		    let _this = this;
+            let formId = this.host.attr("id");
+            let id = formId + "_el_" + seq;
+            let obj = _this._getTool(seq);
+            let elem = this.host.find("#" + id);
+            
+            if (obj.init) {
+                obj.init(elem);
+            } else {
+                let delay = typeof obj.delay === "undefined" ? 50 : obj.delay;
+                
+                let disabled = typeof obj.disabled === "undefined" ? false : obj.disabled;
+                let height = isNaN(parseFloat(obj.height)) ? null : obj.height;
+                let imgSrc = typeof obj.imgSrc === "undefined" ? "" : obj.imgSrc;
+                let imgWidth = typeof obj.imgWidth === "undefined" ? 16 : obj.imgWidth;
+                let imgHeight = typeof obj.imgHeight === "undefined" ? 16 : obj.imgHeight;
+                let imgPosition = typeof obj.imgPosition === "undefined" ? "center" : obj.imgPosition;
+                let roundedCorners = typeof obj.roundedCorners === "undefined" ? "all" : obj.roundedCorners;
+                let rtl = typeof obj.rtl === "undefined" ? false : obj.rtl;
+                let textPosition = typeof obj.textPosition === "undefined" ? "" : obj.textPosition;
+                let textImageRelation = typeof obj.textImageRelation === "undefined" ? "overlay" : obj.textImageRelation; 
+                let theme = typeof obj.theme === "undefined" ? "" : obj.theme;
+                let template = typeof obj.template === "undefined" ? "default" : obj.template;
+                let width = isNaN(parseFloat(obj.width)) ? null : obj.width;
+                let value = typeof obj.value === "undefined" ? null : obj.value;
+                let text = typeof obj.text === "undefined" ? "Button" : obj.text;
+                
+                elem.jqxRepeatButton({
+                    "delay" : delay,
+                    
+                    "disabled" : disabled,
+                    "height" : height,
+                    "imgSrc" : imgSrc,
+                    "imgWidth" : imgWidth,
+                    "imgHeight" : imgHeight,
+                    "imgPosition" : imgPosition,
+                    "roundedCorners" : roundedCorners,
+                    "rtl" : rtl,
+                    "textPosition" : textPosition,
+                    "textImageRelation" : textImageRelation,
+                    "theme" : theme,
+                    "template" : template,
+                    "width" : width,
+                    "value" : value
+                });
+                
+                elem.val(obj.text === undefined ? "Button" : value);
+            }
+		},
+		_initToggleButtonTool: function(seq) {
+		    let _this = this;
+            let formId = this.host.attr("id");
+            let id = formId + "_el_" + seq;
+            let obj = _this._getTool(seq);
+            let elem = this.host.find("#" + id);
+            
+            if (obj.init) {
+                obj.init(elem);
+            } else {
+                let toggled = typeof obj.toggled === "undefined" ? false : obj.toggled;
+                
+                let disabled = typeof obj.disabled === "undefined" ? false : obj.disabled;
+                let height = isNaN(parseFloat(obj.height)) ? null : obj.height;
+                let imgSrc = typeof obj.imgSrc === "undefined" ? "" : obj.imgSrc;
+                let imgWidth = typeof obj.imgWidth === "undefined" ? 16 : obj.imgWidth;
+                let imgHeight = typeof obj.imgHeight === "undefined" ? 16 : obj.imgHeight;
+                let imgPosition = typeof obj.imgPosition === "undefined" ? "center" : obj.imgPosition;
+                let roundedCorners = typeof obj.roundedCorners === "undefined" ? "all" : obj.roundedCorners;
+                let rtl = typeof obj.rtl === "undefined" ? false : obj.rtl;
+                let textPosition = typeof obj.textPosition === "undefined" ? "" : obj.textPosition;
+                let textImageRelation = typeof obj.textImageRelation === "undefined" ? "overlay" : obj.textImageRelation; 
+                let theme = typeof obj.theme === "undefined" ? "" : obj.theme;
+                let template = typeof obj.template === "undefined" ? "default" : obj.template;
+                let width = isNaN(parseFloat(obj.width)) ? null : obj.width;
+                let value = typeof obj.value === "undefined" ? null : obj.value;
+                let text = typeof obj.text === "undefined" ? "Button" : obj.text;
+                
+                elem.jqxToggleButton({
+                    "toggled" : toggled,
+                    
+                    "disabled" : disabled,
+                    "height" : height,
+                    "imgSrc" : imgSrc,
+                    "imgWidth" : imgWidth,
+                    "imgHeight" : imgHeight,
+                    "imgPosition" : imgPosition,
+                    "roundedCorners" : roundedCorners,
+                    "rtl" : rtl,
+                    "textPosition" : textPosition,
+                    "textImageRelation" : textImageRelation,
+                    "theme" : theme,
+                    "template" : template,
+                    "width" : width,
+                    "value" : value
+                });
+                
+                elem.val(obj.text === undefined ? "Button" : value);
+            }
+		},
+		// LinkButton은 기본Button 사용. (default click event 정의)
+		// - href 속성 값 없는 경우 일반버튼 click event 적용
+		_initLinkButtonTool: function(seq) {
+            let _this = this;
+            let formId = this.host.attr("id");
+            let id = formId + "_el_" + seq;
+            let obj = _this._getTool(seq);
+            let elem = this.host.find("#" + id);
+            
+            if (obj.init) {
+                obj.init(elem);
+            } else {
+                let href = typeof obj.href === "undefined" ? null : obj.href;
+                let target = typeof obj.target === "undefined" ? "_blank" : obj.target;
+                
+                let disabled = typeof obj.disabled === "undefined" ? false : obj.disabled;
+                let height = isNaN(parseFloat(obj.height)) ? null : obj.height;
+                let imgSrc = typeof obj.imgSrc === "undefined" ? "" : obj.imgSrc;
+                let imgWidth = typeof obj.imgWidth === "undefined" ? 16 : obj.imgWidth;
+                let imgHeight = typeof obj.imgHeight === "undefined" ? 16 : obj.imgHeight;
+                let imgPosition = typeof obj.imgPosition === "undefined" ? "center" : obj.imgPosition;
+                let roundedCorners = typeof obj.roundedCorners === "undefined" ? "all" : obj.roundedCorners;
+                let rtl = typeof obj.rtl === "undefined" ? false : obj.rtl;
+                let textPosition = typeof obj.textPosition === "undefined" ? "" : obj.textPosition;
+                let textImageRelation = typeof obj.textImageRelation === "undefined" ? "overlay" : obj.textImageRelation; 
+                let theme = typeof obj.theme === "undefined" ? "" : obj.theme;
+                let template = typeof obj.template === "undefined" ? "default" : obj.template;
+                let width = isNaN(parseFloat(obj.width)) ? null : obj.width;
+                let value = typeof obj.value === "undefined" ? null : obj.value;
+                let text = typeof obj.text === "undefined" ? "Button" : obj.text;
+                
+                elem.jqxButton({
+                    "disabled" : disabled,
+                    "height" : height,
+                    "imgSrc" : imgSrc,
+                    "imgWidth" : imgWidth,
+                    "imgHeight" : imgHeight,
+                    "imgPosition" : imgPosition,
+                    "roundedCorners" : roundedCorners,
+                    "rtl" : rtl,
+                    "textPosition" : textPosition,
+                    "textImageRelation" : textImageRelation,
+                    "theme" : theme,
+                    "template" : template,
+                    "width" : width,
+                    "value" : value
+                });
+                
+                elem.val(obj.text === undefined ? "Button" : value);
+                
+                // click event
+                _this.host.find("#" + id).on("click", function (event) {
+                    if(href === "") {
+                        _this._onButtonClick(elem, obj);
+                    } 
+                    else {
+                        window.open(href, target);
+                        return;
+                    }
+                });
+            }
+        },
+        _initSwitchButtonTool: function(seq) {
+        	let _this = this;
+            let formId = this.host.attr("id");
+            let id = formId + "_el_" + seq;
+            let obj = _this._getTool(seq);
+            let elem = this.host.find("#" + id);
+            
+            if (obj.init) {
+                obj.init(elem);
+            } else {
+            	let checked = typeof obj.checked === "undefined" ? false : obj.checked;
+            	let disabled = typeof obj.disabled === "undefined" ? false : obj.disabled;
+            	let height = typeof obj.height === "undefined" ? 30 : obj.height;
+            	let orientation = typeof obj.orientation === "undefined" ? "horizontal" : obj.orientation;
+            	let onLabel = typeof obj.onLabel === "undefined" ? "On" : obj.onLabel;
+            	let offLabel = typeof obj.offLabel === "undefined" ? "Off" : obj.offLabel;
+            	let thumbSize = typeof obj.thumbSize === "undefined" ? "40%" : obj.thumbSize;
+            	let width = typeof obj.width === "undefined" ? 90 : obj.width;
+            	
+                elem.jqxSwitchButton({
+                	"checked" : checked,
+                	"disabled" : disabled,
+                	"height" : height,
+                	"orientation" : orientation,
+                	"onLabel" : onLabel,
+                	"offLabel" : offLabel,
+                	"thumbSize" : thumbSize,
+                	"width" : width,
+                });
+            }
+        },
+        _initDropDownButtonTool: function(seq) {
+        	let _this = this;
+            let formId = this.host.attr("id");
+            let id = formId + "_el_" + seq;
+            let obj = _this._getTool(seq);
+            let elem = this.host.find("#" + id);
+            
+            if (obj.init) {
+                obj.init(elem);
+            } else {
+            	let disabled = typeof obj.disabled === "undefined" ? false : obj.disabled;
+            	let animationType = typeof obj.animationType === "undefined" ? "default" : obj.animationType;
+            	
+            	elem.jqxDropDownButton({
+            		"animationType" : animationType,
+                	"disabled" : disabled,
+                });
+            }
+        },
+        // checkbox (기존 jqxform.js작명 그대로 사용)
+        _initBooleanTool: function (seq) {
+            let _this = this;
+            let formId = this.host.attr("id");
+            let id = formId + "_el_" + seq;
+            let obj = _this._getTool(seq);
+            let elem = this.host.find("#" + id);
+            
+            if (obj.init) {
+                obj.init(elem);
+            } else {
+                let animationShowDelay = typeof obj.animationShowDelay === "undefined" ? 300 : obj.animationShowDelay;
+                let animationHideDelay = typeof obj.animationHideDelay === "undefined" ? 300 : obj.animationHideDelay;
+                let boxSize = typeof obj.boxSize === "undefined" ? 16 : obj.boxSize;
+                let checked = typeof obj.checked === "undefined" ? false : obj.checked;
+                let disabled = typeof obj.disabled === "undefined" ? false : obj.disabled;
+                let enableContainerClick = typeof obj.enableContainerClick === "undefined" ? true : obj.enableContainerClick;
+                let groupName = typeof obj.groupName === "undefined" ? "" : obj.groupName;
+                let height = isNaN(parseFloat(obj.height)) ? 25 : obj.height;
+                let hasThreeStates = typeof obj.hasThreeStates === "undefined" ? false : obj.hasThreeStates; 
+                let locked = typeof obj.locked === "undefined" ? false : obj.locked;
+                let rtl = typeof obj.rtl === "undefined" ? false : obj.rtl;
+                let theme = typeof obj.theme === "undefined" ? "" : obj.theme;
+                
+                let width = isNaN(parseFloat(obj.width)) ? 50 : obj.width;
+                
+                if (obj.component === undefined || obj.component == "jqxCheckBox") {
+                    elem.jqxCheckBox({
+                        "animationShowDelay" : animationShowDelay,
+                        "animationHideDelay" : animationHideDelay,
+                        "boxSize" : boxSize,
+                        "checked" : checked,
+                        "disabled" : disabled,
+                        "enableContainerClick" : enableContainerClick,
+                        "groupName" : groupName,
+                        "height" : height,
+                        "hasThreeStates" : hasThreeStates,
+                        "locked" : locked,
+                        "rtl" : rtl,
+                        "theme" : theme,
+                        "width" : width,
+                    });
+                } else {
+                    return;
+                }
+            }
+            
+            elem.on("change", function (event) {
+                _this._onChangeHandler(event);
+            });
+            
+            let labelElem = _this.host.find("#label_" + id);
+            
+            // label 선택시 check 처리
+            labelElem.on("mousedown", function (evnet) {
+                let enableContainerClick = typeof obj.enableContainerClick === "undefined" ? true : obj.enableContainerClick;
+                
+                if(enableContainerClick) {
+                    let hasValue = _this.host.find("#" + id).val();
+                    _this.host.find("#" + id).val(!hasValue);
+                }
+            })
+        },
 		_initPasswordTool: function (seq) {
 		    let _this = this;
 		    let formId = this.host.attr("id");
@@ -1345,11 +1809,73 @@
                 });
             }
 		},
+		_initComplexInputTool: function(seq) {
+		    let _this = this;
+            let formId = this.host.attr("id");
+            let id = formId + "_el_" + seq;
+            let obj = _this._getTool(seq);
+            let elem = _this.host.find("#" + id);
+            
+            if (obj.init) {
+                obj.init(elem);
+            } else {
+                let decimalNotation = typeof obj.decimalNotation === "undefined" ? "default" : obj.decimalNotation;
+                let disabled = typeof obj.disabled === "undefined" ? false : obj.disabled;
+                let height = isNaN(parseFloat(obj.height)) ? 25 : obj.height;
+                let placeHolder = typeof obj.placeHolder === "undefined" ? "" : obj.placeHolder;
+                let roundedCorners = typeof obj.roundedCorners === "undefined" ? true : obj.roundedCorners;
+                let rtl = typeof obj.rtl === "undefined" ? false : obj.rtl;
+                let spinButtons = typeof obj.spinButtons === "undefined" ? false : obj.spinButtons;
+                let spinButtonsStep = typeof obj.spinButtonsStep === "undefined" ? 1 : obj.spinButtonsStep;
+                let template = typeof obj.template === "undefined" ? "default" : obj.template;
+                let theme = typeof obj.theme === "undefined" ? "" : obj.theme;
+                let value = typeof obj.value === "undefined" ? "" : obj.value;
+                let width = isNaN(parseFloat(obj.width)) ? 200 : obj.width;
+                
+                
+                elem.jqxComplexInput({
+                    "decimalNotation" : decimalNotation,
+                    "disabled" : disabled,
+                    "height" : height,
+                    "placeHolder" : placeHolder,
+                    "roundedCorners" : roundedCorners,
+                    "rtl" : rtl, 
+                    "spinButtons" : spinButtons,
+                    "spinButtonsStep" : spinButtonsStep,
+                    "template" : template,
+                    "theme" : theme,
+                    "value" : value,
+                    
+                    
+                    "width" : width,
+                    "changeType" : null,
+                    "hint" : true,
+                });
+            }
+		},
+		// 181206_kmh 
+		// - param : RadioButton component
+		// - return : option 객체를 반환
+		getRadioOptionsByComponent: function(component) {
+		    let options = new Array();
+		    
+		    // component 내 radiobutton영역 가져옴
+		    let radioElem = component.find(".jqx-radiobutton");
+
+	        for(let i = 0; i < radioElem.length; i++) {
+	            let option = component.find("#" + radioElem[i].id);
+	            
+	            options.push(option);
+	        }
+	        
+	        return options;
+		},
 		getComponentByName: function (c) {
 			if (!a.isArray(this.template)) {
 				return undefined
 			}
 			for (var d = 0; d < this.template.length; d++) {
+			    
 				if (this.template[d].name == c) {
 					return this._getComponentById(d)
 				}
@@ -1361,6 +1887,7 @@
 					}
 				}
 			}
+			
 			return undefined
 		},
 		getComponentNameById: function (id) {
@@ -1387,6 +1914,12 @@
 		_getComponentById: function (c) {
 		    let formId = this.host.attr("id");  // 181113_kmh
 			var b = this.host.find("#" + formId + "_el_" + c);
+
+			// 181206_kmh radioButton 객체 식별시 사용
+			if(!b.attr("id")) {
+			    b = this.host.find("#rowWrap_" + formId + "_el_" + c);
+			}
+			
 			return b
 		},
 		_getComponentLabelById: function (c) {
